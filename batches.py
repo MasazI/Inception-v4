@@ -7,6 +7,7 @@ import time
 import numpy as np
 import multiprocessing
 import h5py
+from keras.utils import np_utils
 
 
 class DataGenerator(object):
@@ -24,6 +25,7 @@ class DataGenerator(object):
 
     def __init__(self,
                  hdf5_file,
+                 num_classes=10,
                  batch_size=32,
                  dset="test",
                  maxproc=8,
@@ -36,6 +38,7 @@ class DataGenerator(object):
         self.dset = dset
         self.maxproc = maxproc
         self.hdf5_file = hdf5_file
+        self.num_classes = num_classes
         self.batch_size = batch_size
         self.num_cached = num_cached
 
@@ -85,6 +88,8 @@ class DataGenerator(object):
                         # Get X and y
                         X_batch_color = hf["%s_image_data" % self.dset][idx_start: idx_end, :, :, :]
                         Y_batch = hf["%s_label_data" % self.dset][idx_start: idx_end]
+                        # to one hot vector.
+                        Y_batch = np_utils.to_categorical(Y_batch, self.num_classes)
 
                         # Put the data in a queue
                         queue.put((X_batch_color, Y_batch))
