@@ -34,6 +34,7 @@ model = create_inception_v4()
 
 ```
 
+---
 ## Inception ResNet v1
 The python script '<b>inception_resnet_v1.py</b>' contains the methods necessary to create the Inception ResNet v1 network. 
 It is to be noted that scaling of the residuals is turned <b>OFF</b> by default. This can be rectified by supplying 'scale=True' in the create method.
