@@ -2,12 +2,12 @@
 ## Featues
 ### dataset to hdf5
 generating dataset of hdf5 in parallel.
-- create csv.file.
+- create csv file
 ```
 <image_path>,<label>
 ```
 
-- generate hdf5 file.
+- generate hdf5 file
 ```
 data_to_hdf5.py
 ```
