@@ -1,5 +1,17 @@
 # DeepLearning with Keras based on Inception v4 in Keras
 ## Featues
+### dataset to hdf5
+generating dataset of hdf5 in parallel.
+- create csv.file.
+```
+<image_path>,<label>
+```
+
+- generate hdf5 file.
+```
+data_to_hdf5.py
+```
+
 ### MNIST with MLP
 Implementations of MLP for MINST Classification.
 
