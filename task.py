@@ -39,7 +39,7 @@ def train(**kwargs):
                                         num_classes=num_classes,
                                         batch_size=batch_size,
                                         dset='train')
-    c, h, w = DataGen.get_config()["data_shape"][1:]
+    h, w, c = DataGen.get_config()["data_shape"][1:]
 
     print("input data info")
     print("- channel: %d" % c)
@@ -49,7 +49,7 @@ def train(**kwargs):
     try:
 
         if model_name == 'inception_v4':
-            model = create_inception_v4(nb_classes=num_classes)
+            model = create_inception_v4(nb_classes=num_classes, load_weights=True)
         elif model_name == 'inception_resnet_v1':
             pass
         elif model_name == 'inception_resnet_v2':
@@ -60,6 +60,11 @@ def train(**kwargs):
         opt = Adam(lr=1E-4, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
 
         model.compile(optimizer=opt, loss='categorical_crossentropy')
+
+        # try:
+        #     model.load_weights(filepath=os.path.join('weights', 'inception-v4_weights_tf_dim_ordering_tf_kernels.h5'))
+        # except Exception as e:
+        #     print("[Error] %s" % e)
 
         model_dir = os.path.join("models", model_name)
         if not os.path.exists(model_dir):
@@ -101,7 +106,7 @@ if __name__ == '__main__':
     # parser.add_argument('--training_mode', default="in_memory", type=str,
     #                     help=('Training mode. Choose in_memory to load all the data in memory and train.'
     #                           'Choose on_demand to load batches from disk at each step'))
-    parser.add_argument('--batch_size', default=32, type=int, help='Batch size')
+    parser.add_argument('--batch_size', default=10, type=int, help='Batch size')
     parser.add_argument('--n_batch_per_epoch', default=100, type=int, help="Number of training epochs")
     parser.add_argument('--nb_epoch', default=400, type=int, help="Number of batches per epoch")
     parser.add_argument('--epoch', default=0, type=int, help="Epoch at which weights were saved for evaluation")
