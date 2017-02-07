@@ -22,7 +22,8 @@ def format_data(img_path, label, size):
     img_color = cv2.imread(img_path)
     img_color = img_color[:, :, ::-1]
     img_color = cv2.resize(img_color, (size, size), interpolation=cv2.INTER_AREA)
-    img_color = img_color.reshape((1, size, size, 3)).transpose(0, 3, 1, 2)
+    img_color = img_color.reshape((1, size, size, 3))\
+    #.transpose(0, 3, 1, 2)
 
     return img_color, label
 
@@ -39,14 +40,14 @@ def data_to_hdf5(data_dir, images_list, csv_name, num_classes, size=64):
         num_files = len(images_list)
 
         data_img = hfw.create_dataset("%s_image_data" % csv_name,
-                                        (0, 3, size, size),
-                                        maxshape=(None, 3, size, size),
+                                        (0, size, size, 3),
+                                        maxshape=(None, size, size, 3),
                                         dtype=np.uint8)
         data_label = hfw.create_dataset("%s_label_data" % csv_name,
                                       (0, 1),
                                       maxshape=(None, num_classes),
                                       dtype=np.uint8)
-        chunk_size = 2
+        chunk_size = 1000
         num_chunks = num_files / chunk_size
         arr_chunks = np.array_split(np.arange(num_files), num_chunks)
 
@@ -99,13 +100,13 @@ def load_image_pathes(csv_file_path):
 if __name__ == '__main__':
     # args
     parser = argparse.ArgumentParser(description='Build dataset')
-    parser.add_argument('--img_size', default=64, type=int,
+    parser.add_argument('--img_size', default=299, type=int,
                         help='Desired Width == Height')
-    parser.add_argument('--csv_file', default="test.csv", type=str,
+    parser.add_argument('--csv_file', default="train.csv", type=str,
                         help='transfer csv file path.')
     parser.add_argument('--data_dir', default="data", type=str,
                         help='data dir path.')
-    parser.add_argument('--num_classes', default=10, type=int,
+    parser.add_argument('--num_classes', default=25, type=int,
                         help='the number of classes.')
 
     args = parser.parse_args()
@@ -113,13 +114,14 @@ if __name__ == '__main__':
     if not os.path.exists(args.data_dir):
         os.makedirs(args.data_dir)
 
+    size = args.img_size
     csv_file = args.csv_file
     images_list = load_image_pathes(csv_file)
     num_classes = args.num_classes
 
     csv_name, csv_ext = os.path.splitext(os.path.basename(csv_file))
-    data_to_hdf5(args.data_dir, images_list, csv_name, num_classes)
-    check_HDF5(args.data_dir, csv_name)
+    data_to_hdf5(args.data_dir, images_list, csv_name, num_classes, size=size)
+    #check_HDF5(args.data_dir, csv_name)
 
 
 

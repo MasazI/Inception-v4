@@ -49,14 +49,14 @@ class DataGenerator(object):
         with h5py.File(self.hdf5_file, "r") as hf:
             self.X_shape = hf["%s_image_data" % self.dset].shape
             assert len(self.X_shape) == 4, \
-                ("\n\nImg data should be formatted as: \n"
-                 "(n_samples, n_channels, Height, Width)")
+                ("\n\nImg data should be formatted as(1): \n"
+                 "(n_samples, Height, Width, n_channels)")
 
             self.n_samples = hf["%s_label_data" % self.dset].shape[0]
             # Verify n_channels is at index 1
-            assert self.X_shape[-3] < min(self.X_shape[-2:]), \
-                ("\n\nImg data should be formatted as: \n"
-                 "(n_samples, n_channels, Height, Width)")
+            assert self.X_shape[-3] > min(self.X_shape[-2:]), \
+                ("\n\nImg data should be formatted as(2): \n"
+                 "(n_samples, Height, Width, n_channels)")
 
         # Save the class internal variables to a config dict
         self.d_config = {}
@@ -90,10 +90,8 @@ class DataGenerator(object):
                         Y_batch = hf["%s_label_data" % self.dset][idx_start: idx_end]
                         # to one hot vector.
                         Y_batch = np_utils.to_categorical(Y_batch, self.num_classes)
-
                         # Put the data in a queue
                         queue.put((X_batch_color, Y_batch))
-                        print("fffff")
                 except Exception as e:
                     print(e)
                     print("Nothing here")
@@ -117,7 +115,7 @@ class DataGenerator(object):
                     start_process()
 
                 yield queue.get()
-        except Exception as e:
+        except:
             for th in processes:
                 th.terminate()
             queue.close()
