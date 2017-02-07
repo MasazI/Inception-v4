@@ -1,4 +1,26 @@
-# Inception v4 in Keras
+# DeepLearning with Keras based on Inception v4 in Keras
+## Featues
+### dataset to hdf5
+generating dataset of hdf5 in parallel.
+- create csv file
+```
+<image_path>,<label>
+```
+
+- generate hdf5 file
+```
+data_to_hdf5.py
+```
+
+### MNIST with MLP
+Implementations of MLP for MINST Classification.
+
+### CIFAR10 with CNN
+Implementations of simple CNN for CIFAR10 Classification.
+
+
+---
+## Inception v4 with Keras
 Implementations of the Inception-v4, Inception - Resnet-v1 and v2 Architectures in Keras using the Functional API. The paper on these architectures is available at <a href="http://arxiv.org/pdf/1602.07261v1.pdf"><b>"Inception-v4, Inception-ResNet and the Impact of Residual Connections on Learning"</b></a>. 
 
 The models are plotted and shown in the architecture sub folder. Due to lack of suitable training data (ILSVR 2015 dataset) and limited GPU processing power, the weights are not provided. 
