@@ -18,6 +18,8 @@ Implementations of MLP for MINST Classification.
 ### CIFAR10 with CNN
 Implementations of simple CNN for CIFAR10 Classification.
 
+
+---
 ## Inception v4 with Keras
 Implementations of the Inception-v4, Inception - Resnet-v1 and v2 Architectures in Keras using the Functional API. The paper on these architectures is available at <a href="http://arxiv.org/pdf/1602.07261v1.pdf"><b>"Inception-v4, Inception-ResNet and the Impact of Residual Connections on Learning"</b></a>. 
 
@@ -34,7 +36,6 @@ model = create_inception_v4()
 
 ```
 
----
 ## Inception ResNet v1
 The python script '<b>inception_resnet_v1.py</b>' contains the methods necessary to create the Inception ResNet v1 network. 
 It is to be noted that scaling of the residuals is turned <b>OFF</b> by default. This can be rectified by supplying 'scale=True' in the create method.
