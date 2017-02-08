@@ -59,22 +59,28 @@ def predict_csv(**kwargs):
     model = create_inception_v4(nb_classes=num_classes, load_weights=False)
     model.load_weights(model_path)
 
+    model_name, ext = os.path.splitext(os.path.basename(model_path))
+
     with open(csv_path, 'r') as f:
-        with open('result.csv', 'r') as rf:
-            for i, img in enumerate(f):
-                img_path = 'clf_test/test_%d.jpg' % (i)
-                image_obj = format_data(img_path, 299)
-                preds = model.predict(image_obj)
-                predict_cls = np.argmax(preds)
-                predict_name = ""
-                for name, age in cls_dict.iteritems():
-                    if age == predict_cls:
-                        predict_name = name
-                        break
-                result = "test_%d.jpg,%d,%s" % (i, predict_cls, predict_name)
-                print(result)
-                rf.write(result)
-                rf.write("\n")
+        with open('result_%s.csv' % model_name, 'w') as rf:
+            with open('result_fro_app_%s.csv' % model_name, 'w') as raf:
+                for i, img in enumerate(f):
+                    img_path = 'clf_test/test_%d.jpg' % (i)
+                    image_obj = format_data(img_path, 299)
+                    preds = model.predict(image_obj)
+                    predict_cls = np.argmax(preds)
+                    predict_name = ""
+                    for name, age in cls_dict.iteritems():
+                        if age == predict_cls:
+                            predict_name = name
+                            break
+                    result = "test_%d.jpg,%d,%s" % (i, predict_cls, predict_name)
+                    print(result)
+                    rf.write(result)
+                    rf.write("\n")
+                    app_result = "%d,%d" % (i, predict_cls)
+                    raf.write(app_result)
+                    raf.write("\n")
 
 
 def predict(**kwargs):
@@ -91,7 +97,7 @@ if __name__ == "__main__":
     parser.add_argument('mode', type=str, help='Choose csv or ind.')
     parser.add_argument('file_path', default="test.csv", type=str, help='file path for eval.')
     parser.add_argument('--num_classes', default=10, type=int, help='the number of classes.')
-    parser.add_argument('--model_path', default="models/inception_v4/inception_v4_weights_epoch300.h5", type=str, help='model weights path.')
+    parser.add_argument('--model_path', default="models/inception_v4/inception_v4_weights_epoch395.h5", type=str, help='model weights path.')
     args = parser.parse_args()
 
     d_params = {
