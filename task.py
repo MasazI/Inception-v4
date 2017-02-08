@@ -9,19 +9,10 @@ import batches
 from keras.optimizers import Adam
 from inception_v4 import create_inception_v4
 
+def eval():
+    pass
 
 def train(**kwargs):
-    d_params = {"data_file": args.data_file,
-                "data_dir": args.data_dir,
-                "model_name": args.model_name,
-                "batch_size": args.batch_size,
-                "n_batch_per_epoch": args.n_batch_per_epoch,
-                "nb_epoch": args.nb_epoch,
-                # "training_mode": args.training_mode,
-                "epoch": args.epoch,
-                "num_classes": args.num_classes
-                }
-
     data_file = kwargs["data_file"]
     data_dir = kwargs["data_dir"]
     model_name = kwargs["model_name"]
