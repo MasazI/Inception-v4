@@ -1,7 +1,7 @@
 # DeepLearning with Keras based on Inception v4 in Keras
 ## Featues
-### dataset to hdf5
-generating dataset of hdf5 in parallel.
+### hdf5's dataset
+generating hdf5's dataset in parallel.
 - create csv file
 ```
 <image_path>,<label>
@@ -10,6 +10,21 @@ generating dataset of hdf5 in parallel.
 - generate hdf5 file
 ```
 data_to_hdf5.py
+```
+
+### Train with Inception-v4 (loding pre-trained parameters using ImageNet automaticaly) from hdf5's dataset (and real-time data augmentation)
+You can train neural networks using hdf5's dataset.
+
+- example
+```
+python task.py train <hdf5's file path> --num_classes=<The number of classes>
+
+```
+
+- other training options
+you can see training options.
+```
+python task.py
 ```
 
 ### MNIST with MLP
