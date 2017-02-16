@@ -14,6 +14,21 @@ import cv2
 import matplotlib.pylab as plt
 import matplotlib.gridspec as gridspec
 
+def format_data_clahe(img_path, label, size, limit=2):
+    img_color = cv2.imread(img_path)
+    img_color = img_color[:, :, ::-1]
+    img_color = cv2.resize(img_color, (size, size), interpolation=cv2.INTER_AREA)
+
+    # clahe
+    lab = cv2.cvtColor(img_color, cv2.COLOR_BGR2LAB)
+    lab_planes = cv2.split(lab)
+    clahe = cv2.createCLAHE(clipLimit=limit)
+    lab_planes[0] = clahe.apply(lab_planes[0])
+    lab = cv2.merge(lab_planes)
+    img_color = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
+    img_color = img_color.reshape((1, size, size, 3))
+    return img_color, label
+
 
 def format_data(img_path, label, size):
     """
@@ -22,7 +37,7 @@ def format_data(img_path, label, size):
     img_color = cv2.imread(img_path)
     img_color = img_color[:, :, ::-1]
     img_color = cv2.resize(img_color, (size, size), interpolation=cv2.INTER_AREA)
-    img_color = img_color.reshape((1, size, size, 3))\
+    img_color = img_color.reshape((1, size, size, 3))
     #.transpose(0, 3, 1, 2)
 
     return img_color, label
@@ -100,7 +115,7 @@ def load_image_pathes(csv_file_path):
 if __name__ == '__main__':
     # args
     parser = argparse.ArgumentParser(description='Build dataset')
-    parser.add_argument('--img_size', default=299, type=int,
+    parser.add_argument('--img_size', default=339, type=int,
                         help='Desired Width == Height')
     parser.add_argument('--csv_file', default="train.csv", type=str,
                         help='transfer csv file path.')
