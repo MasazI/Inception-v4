@@ -47,7 +47,7 @@ def train(**kwargs):
     try:
 
         if model_name == 'inception_v4':
-            model = create_inception_v4(nb_classes=num_classes, load_weights=True, crop=crop)
+            model = create_inception_v4(nb_classes=num_classes, load_weights=True, crop=crop, drop_out=1.0)
         elif model_name == 'inception_resnet_v1':
             pass
         elif model_name == 'inception_resnet_v2':
@@ -87,6 +87,9 @@ def train(**kwargs):
                     # flip horizontal
                     if np.random.random() < 0.5:
                         x = keras_image.flip_axis(x, axis=1)
+                    # clahe
+                    if np.random.random() < 0.5:
+                        x = batches.clahe(x, size=h)
 
                     if DEBUG:
                         x_disp = x[:,:,::-1]

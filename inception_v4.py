@@ -173,7 +173,7 @@ def reduction_B(input):
     return m
 
 
-def create_inception_v4(nb_classes=1001, load_weights=True, crop=True):
+def create_inception_v4(nb_classes=1001, load_weights=True, crop=True, drop_out=0.8):
     '''
     Creates a inception v4 network
     :param nb_classes: number of classes.txt
@@ -219,7 +219,7 @@ def create_inception_v4(nb_classes=1001, load_weights=True, crop=True):
     x = AveragePooling2D((8, 8))(x)
 
     # Dropout
-    x = Dropout(0.8)(x)
+    x = Dropout(drop_out)(x)
     x = Flatten()(x)
 
     # Output

@@ -8,6 +8,19 @@ import numpy as np
 import multiprocessing
 import h5py
 from keras.utils import np_utils
+import cv2
+
+
+def clahe(x, size, limit=2):
+    # clahe
+    lab = cv2.cvtColor(x, cv2.COLOR_BGR2LAB)
+    lab_planes = cv2.split(lab)
+    clahe = cv2.createCLAHE(clipLimit=limit)
+    lab_planes[0] = clahe.apply(lab_planes[0])
+    lab = cv2.merge(lab_planes)
+    img_color = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
+    #img_color = img_color.reshape((1, size, size, 3))
+    return img_color
 
 
 class DataGenerator(object):
