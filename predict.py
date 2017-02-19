@@ -38,6 +38,23 @@ cls_dict = {
     "sweets_pudding":  24,
 }
 
+
+def format_data_clahe(img_path, size, limit=2):
+    img_color = cv2.imread(img_path)
+    img_color = img_color[:, :, ::-1]
+    img_color = cv2.resize(img_color, (size, size), interpolation=cv2.INTER_AREA)
+
+    # clahe
+    lab = cv2.cvtColor(img_color, cv2.COLOR_BGR2LAB)
+    lab_planes = cv2.split(lab)
+    clahe = cv2.createCLAHE(clipLimit=limit)
+    lab_planes[0] = clahe.apply(lab_planes[0])
+    lab = cv2.merge(lab_planes)
+    img_color = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
+    img_color = img_color.reshape((1, size, size, 3))
+    return img_color
+
+
 def format_data(img_path, size):
     """
     Load img with opencv and reshape
@@ -55,8 +72,10 @@ def predict_csv(**kwargs):
     csv_path = kwargs["file_path"]
     num_classes = kwargs["num_classes"]
     model_path = kwargs["model_path"]
+    size = kwargs["size"]
+    crop = kwargs["crop"]
 
-    model = create_inception_v4(nb_classes=num_classes, load_weights=False)
+    model = create_inception_v4(nb_classes=num_classes, load_weights=False, crop=crop)
     model.load_weights(model_path)
 
     model_name, ext = os.path.splitext(os.path.basename(model_path))
@@ -66,7 +85,7 @@ def predict_csv(**kwargs):
             with open('result_fro_app_%s.csv' % model_name, 'w') as raf:
                 for i, img in enumerate(f):
                     img_path = 'clf_test/test_%d.jpg' % (i)
-                    image_obj = format_data(img_path, 299)
+                    image_obj = format_data(img_path, size)
                     preds = model.predict(image_obj)
                     predict_cls = np.argmax(preds)
                     predict_name = ""
@@ -96,15 +115,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Inception-v4')
     parser.add_argument('mode', type=str, help='Choose csv or ind.')
     parser.add_argument('file_path', default="test.csv", type=str, help='file path for eval.')
+    parser.add_argument('size', default=299, type=int, help='input rectangle size of input.')
+    parser.add_argument('crop', default=False, type=bool, help='scop images?')
     parser.add_argument('--num_classes', default=10, type=int, help='the number of classes.')
-    parser.add_argument('--model_path', default="models/inception_v4/inception_v4_weights_epoch395.h5", type=str, help='model weights path.')
+    parser.add_argument('--model_path', default="models/inception_v4/inception_v4_weights_epoch200.h5", type=str, help='model weights path.')
     args = parser.parse_args()
 
     d_params = {
                 "file_path": args.file_path,
                 "num_classes": args.num_classes,
-                "model_path": args.model_path
-                }
+                "model_path": args.model_path,
+                "size": args.size,
+                "crop": args.crop,
+    }
 
     if args.mode == "csv":
         predict_csv(**d_params)

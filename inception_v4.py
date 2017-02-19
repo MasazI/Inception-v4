@@ -1,5 +1,5 @@
 from keras.layers import Input, merge, Dropout, Dense, Flatten, Activation
-from keras.layers.convolutional import MaxPooling2D, Convolution2D, AveragePooling2D
+from keras.layers.convolutional import MaxPooling2D, Convolution2D, AveragePooling2D, Cropping2D
 from keras.layers.normalization import BatchNormalization
 from keras.models import Model
 
@@ -173,7 +173,7 @@ def reduction_B(input):
     return m
 
 
-def create_inception_v4(nb_classes=1001, load_weights=True):
+def create_inception_v4(nb_classes=1001, load_weights=True, crop=True, drop_out=0.8):
     '''
     Creates a inception v4 network
     :param nb_classes: number of classes.txt
@@ -183,10 +183,19 @@ def create_inception_v4(nb_classes=1001, load_weights=True):
     if K.image_dim_ordering() == 'th':
         init = Input((3, 299, 299))
     else:
-        init = Input((299, 299, 3))
+        if crop:
+            init = Input((319, 319, 3))
+        else:
+            init = Input((299, 299, 3))
+
+    # crop layer
+    if crop:
+        x = Cropping2D(cropping=((10,10),(10,10)))(init)
+    else:
+        x = init
 
     # Input Shape is 299 x 299 x 3 (tf) or 3 x 299 x 299 (th)
-    x = inception_stem(init)
+    x = inception_stem(x)
 
     # 4 x Inception A
     for i in range(4):
@@ -210,7 +219,7 @@ def create_inception_v4(nb_classes=1001, load_weights=True):
     x = AveragePooling2D((8, 8))(x)
 
     # Dropout
-    x = Dropout(0.8)(x)
+    x = Dropout(drop_out)(x)
     x = Flatten()(x)
 
     # Output

@@ -11,6 +11,7 @@ import batches
 from keras.optimizers import Adam
 import keras.preprocessing.image as keras_image
 from inception_v4 import create_inception_v4
+from inception_resnet_v2 import create_inception_resnet_v2
 
 DEBUG = False
 
@@ -20,6 +21,7 @@ def eval():
 def train(**kwargs):
     data_file = kwargs["data_file"]
     data_dir = kwargs["data_dir"]
+    crop = kwargs["crop"]
     model_name = kwargs["model_name"]
     batch_size = kwargs["batch_size"]
     nb_epoch = kwargs["nb_epoch"]
@@ -45,11 +47,11 @@ def train(**kwargs):
     try:
 
         if model_name == 'inception_v4':
-            model = create_inception_v4(nb_classes=num_classes, load_weights=True)
+            model = create_inception_v4(nb_classes=num_classes, load_weights=True, crop=crop, drop_out=1.0)
         elif model_name == 'inception_resnet_v1':
             pass
         elif model_name == 'inception_resnet_v2':
-            pass
+            model = create_inception_resnet_v2(nb_classes=num_classes)
 
         model.summary()
 
@@ -85,6 +87,9 @@ def train(**kwargs):
                     # flip horizontal
                     if np.random.random() < 0.5:
                         x = keras_image.flip_axis(x, axis=1)
+                    # clahe
+                    if np.random.random() < 0.5:
+                        x = batches.clahe(x, size=h)
 
                     if DEBUG:
                         x_disp = x[:,:,::-1]
@@ -125,6 +130,7 @@ if __name__ == '__main__':
 
     parser.add_argument('mode', type=str, help="Choose train or eval")
     parser.add_argument('data_file', type=str, help="Path to HDF5 containing the data")
+    parser.add_argument('crop', type=bool, help="Does crop image data?")
     parser.add_argument('--data_dir', default="data", type=str,
                         help='data dir path.')
     parser.add_argument('--model_name', type=str, default="inception_v4",
@@ -143,6 +149,7 @@ if __name__ == '__main__':
     # Set default params
     d_params = {"data_file": args.data_file,
                 "data_dir": args.data_dir,
+                "crop": args.crop,
                 "model_name": args.model_name,
                 "batch_size": args.batch_size,
                 "n_batch_per_epoch": args.n_batch_per_epoch,
