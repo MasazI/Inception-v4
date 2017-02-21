@@ -6,7 +6,10 @@ import cv2
 import os
 import numpy as np
 import argparse
+import tensorflow as tf
+import keras.backend.tensorflow_backend as KTF
 from inception_v4 import create_inception_v4
+from PIL import Image
 
 IMAGE_HOME = "clf_test"
 
@@ -45,12 +48,12 @@ def format_data_clahe(img_path, size, limit=2):
     img_color = cv2.resize(img_color, (size, size), interpolation=cv2.INTER_AREA)
 
     # clahe
-    lab = cv2.cvtColor(img_color, cv2.COLOR_BGR2LAB)
+    lab = cv2.cvtColor(img_color, cv2.COLOR_RGB2LAB)
     lab_planes = cv2.split(lab)
     clahe = cv2.createCLAHE(clipLimit=limit)
     lab_planes[0] = clahe.apply(lab_planes[0])
     lab = cv2.merge(lab_planes)
-    img_color = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
+    img_color = cv2.cvtColor(lab, cv2.COLOR_LAB2RGB)
     img_color = img_color.reshape((1, size, size, 3))
     return img_color
 
@@ -68,12 +71,28 @@ def format_data(img_path, size):
     return img_color
 
 
+def get_session(gpu_fraction=0.3):
+    '''Assume that you have 6GB of GPU memory and want to allocate ~2GB'''
+
+    num_threads = os.environ.get('OMP_NUM_THREADS')
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=gpu_fraction)
+
+    if num_threads:
+        return tf.Session(config=tf.ConfigProto(
+            gpu_options=gpu_options, intra_op_parallelism_threads=num_threads))
+    else:
+        return tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
+
 def predict_csv(**kwargs):
     csv_path = kwargs["file_path"]
     num_classes = kwargs["num_classes"]
     model_path = kwargs["model_path"]
     size = kwargs["size"]
     crop = kwargs["crop"]
+    print("size: %d" % size)
+    print("crop: %s" % crop)
+
+    KTF.set_session(get_session())
 
     model = create_inception_v4(nb_classes=num_classes, load_weights=False, crop=crop)
     model.load_weights(model_path)
@@ -116,7 +135,8 @@ if __name__ == "__main__":
     parser.add_argument('mode', type=str, help='Choose csv or ind.')
     parser.add_argument('file_path', default="test.csv", type=str, help='file path for eval.')
     parser.add_argument('size', default=299, type=int, help='input rectangle size of input.')
-    parser.add_argument('crop', default=False, type=bool, help='scop images?')
+    parser.add_argument('--crop', dest='crop', action='store_true')
+    parser.set_defaults(crop=False)
     parser.add_argument('--num_classes', default=10, type=int, help='the number of classes.')
     parser.add_argument('--model_path', default="models/inception_v4/inception_v4_weights_epoch200.h5", type=str, help='model weights path.')
     args = parser.parse_args()
