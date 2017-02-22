@@ -9,6 +9,7 @@ import argparse
 import tensorflow as tf
 import keras.backend.tensorflow_backend as KTF
 from inception_v4 import create_inception_v4
+import matplotlib.pylab as plt
 from PIL import Image
 
 IMAGE_HOME = "clf_test"
@@ -71,6 +72,52 @@ def format_data(img_path, size):
     return img_color
 
 
+def center_crop(x, center_crop_size, **kwargs):
+    centerw, centerh = x.shape[0]//2, x.shape[1]//2
+    halfw, halfh = center_crop_size[0]//2, center_crop_size[1]//2
+    return x[centerw-halfw:centerw+halfw+1,centerh-halfh:centerh+halfh+1, :]
+
+
+def format_data_10_crop(img_path, size, preprocess=True, verbose=False):
+    img_color = cv2.imread(img_path)
+    img_color = img_color[:, :, ::-1]
+    # TODO superresolution
+    img = cv2.resize(img_color, (500, 500), interpolation=cv2.INTER_AREA)
+    flipped_X = np.fliplr(img)
+    crops = [
+        img[:size, :size, :],  # Upper Left
+        img[:size, img.shape[1] - size:, :],  # Upper Right
+        img[img.shape[0] - size:, :size, :],  # Lower Left
+        img[img.shape[0] - size:, img.shape[1] - size:, :],  # Lower Right
+        center_crop(img, (size, size)),
+
+        flipped_X[:size, :size, :],
+        flipped_X[:size, flipped_X.shape[1] - size:, :],
+        flipped_X[flipped_X.shape[0] - size:, :size, :],
+        flipped_X[flipped_X.shape[0] - size:, flipped_X.shape[1] - size:, :],
+        center_crop(flipped_X, (size, size))
+    ]
+
+    if preprocess:
+        pass
+
+    if verbose:
+        fig, ax = plt.subplots(2, 5, figsize=(10, 4))
+        ax[0][0].imshow(crops[0])
+        ax[0][1].imshow(crops[1])
+        ax[0][2].imshow(crops[2])
+        ax[0][3].imshow(crops[3])
+        ax[0][4].imshow(crops[4])
+        ax[1][0].imshow(crops[5])
+        ax[1][1].imshow(crops[6])
+        ax[1][2].imshow(crops[7])
+        ax[1][3].imshow(crops[8])
+        ax[1][4].imshow(crops[9])
+        plt.show()
+
+    return np.array(crops)
+
+
 def get_session(gpu_fraction=0.3):
     '''Assume that you have 6GB of GPU memory and want to allocate ~2GB'''
 
@@ -82,6 +129,15 @@ def get_session(gpu_fraction=0.3):
             gpu_options=gpu_options, intra_op_parallelism_threads=num_threads))
     else:
         return tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
+
+
+def most_count_class(predict_clses):
+    counter = np.zeros(25)
+    for predict_cls in predict_clses:
+        counter[predict_cls] += 1
+    most_count_index = np.argmax(counter)
+    return most_count_index
+
 
 def predict_csv(**kwargs):
     csv_path = kwargs["file_path"]
@@ -100,23 +156,35 @@ def predict_csv(**kwargs):
     model_name, ext = os.path.splitext(os.path.basename(model_path))
 
     with open(csv_path, 'r') as f:
-        with open('result_%s.csv' % model_name, 'w') as rf:
-            with open('result_fro_app_%s.csv' % model_name, 'w') as raf:
+        with open('result_top10_%s.csv' % model_name, 'w') as rf:
+            with open('result_top10_for_app_%s.csv' % model_name, 'w') as raf:
                 for i, img in enumerate(f):
                     img_path = 'clf_test/test_%d.jpg' % (i)
-                    image_obj = format_data(img_path, size)
+                    image_obj = format_data_10_crop(img_path, size, verbose=False)
                     preds = model.predict(image_obj)
-                    predict_cls = np.argmax(preds)
-                    predict_name = ""
+
+                    predict_clses = []
+                    predict_names = []
+                    for pred in preds:
+                        predict_cls = np.argmax(pred)
+                        #top_n_preds = np.argpartition(pred, -5)[:, -5:]
+                        predict_clses.append(predict_cls)
+                        predict_name = ""
+                        for name, age in cls_dict.iteritems():
+                            if age == predict_cls:
+                                predict_name = name
+                                predict_names.append(predict_name)
+                                break
+                    predict_cls_10crop = most_count_class(predict_clses)
                     for name, age in cls_dict.iteritems():
-                        if age == predict_cls:
-                            predict_name = name
+                        if age == predict_cls_10crop:
+                            predict_name_10crop = name
                             break
-                    result = "test_%d.jpg,%d,%s" % (i, predict_cls, predict_name)
+                    result = "test_%d.jpg,%d,%s" % (i, predict_cls_10crop, predict_name_10crop)
                     print(result)
                     rf.write(result)
                     rf.write("\n")
-                    app_result = "%d,%d" % (i, predict_cls)
+                    app_result = "%d,%d" % (i, predict_cls_10crop)
                     raf.write(app_result)
                     raf.write("\n")
 
